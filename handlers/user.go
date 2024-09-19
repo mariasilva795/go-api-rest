@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -53,6 +54,13 @@ func SignUpHandler(s server.Server) http.HandlerFunc {
 			Password: string(hashedPassword),
 			Id:       id.String(),
 		}
+
+		existEmail, _ := repository.GetUserByEmail(r.Context(), request.Email)
+		if existEmail != nil {
+			http.Error(w, "This email already exists", http.StatusUnauthorized)
+			return
+		}
+
 		err = repository.InsertUser(r.Context(), &user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -86,9 +94,6 @@ func LoginHandler(s server.Server) http.HandlerFunc {
 		}
 
 		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(request.Password)); err != nil {
-			log.Println(user.Password)
-			log.Println(request.Password)
-			log.Println("/////")
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -110,5 +115,34 @@ func LoginHandler(s server.Server) http.HandlerFunc {
 			Token: tokenString,
 		})
 
+	}
+}
+
+func MeHandler(s server.Server) http.HandlerFunc {
+	log.Println("MeHandler")
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
+		log.Println("MeHandler")
+
+		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(t *jwt.Token) (interface{}, error) {
+			return []byte(s.Config().JWTSecret), nil
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		if claims, ok := token.Claims.(*models.AppClaims); ok && token.Valid {
+			user, err := repository.GetUserById(r.Context(), claims.UserId)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(user)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }
