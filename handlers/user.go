@@ -56,7 +56,8 @@ func SignUpHandler(s server.Server) http.HandlerFunc {
 		}
 
 		existEmail, _ := repository.GetUserByEmail(r.Context(), request.Email)
-		if existEmail != nil {
+
+		if existEmail != nil && existEmail.Email != "" {
 			http.Error(w, "This email already exists", http.StatusUnauthorized)
 			return
 		}
