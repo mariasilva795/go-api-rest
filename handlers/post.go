@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/mariasilva795/go-api-rest/helpers/auth"
 	"github.com/mariasilva795/go-api-rest/models"
 	"github.com/mariasilva795/go-api-rest/repository"
@@ -18,6 +19,20 @@ type InsertPostRequest struct {
 type PostResponse struct {
 	Id          string `json:"id"`
 	PostContent string `json:"postContent"`
+}
+
+func GetPostByIDHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+
+		post, err := repository.GetPostById(r.Context(), params["id"])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(post)
+	}
 }
 
 func InsertPostHandler(s server.Server) http.HandlerFunc {
