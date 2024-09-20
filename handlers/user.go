@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/mariasilva795/go-api-rest/helpers/auth"
 	"github.com/mariasilva795/go-api-rest/models"
 	"github.com/mariasilva795/go-api-rest/repository"
 	"github.com/mariasilva795/go-api-rest/server"
@@ -119,30 +119,19 @@ func LoginHandler(s server.Server) http.HandlerFunc {
 }
 
 func MeHandler(s server.Server) http.HandlerFunc {
-	log.Println("MeHandler")
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimSpace(r.Header.Get("Authorization"))
-		log.Println("MeHandler")
-
-		token, err := jwt.ParseWithClaims(tokenString, &models.AppClaims{}, func(t *jwt.Token) (interface{}, error) {
-			return []byte(s.Config().JWTSecret), nil
-		})
+		claimsUserId, err := auth.ValidateToken(s, r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		if claims, ok := token.Claims.(*models.AppClaims); ok && token.Valid {
-			user, err := repository.GetUserById(r.Context(), claims.UserId)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(user)
-		} else {
+		user, err := repository.GetUserById(r.Context(), claimsUserId)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(user)
+
 	}
 }
