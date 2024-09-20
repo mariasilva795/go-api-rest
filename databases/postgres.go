@@ -40,6 +40,11 @@ func (repo *PostgresRepository) UpdatePost(ctx context.Context, post *models.Pos
 	return err
 }
 
+func (repo *PostgresRepository) DeletePost(ctx context.Context, id string, userId string) error {
+	_, err := repo.db.ExecContext(ctx, "DELETE FROM posts WHERE id = $1 and user_id = $2", id, userId)
+	return err
+}
+
 func (repo *PostgresRepository) GetPostById(ctx context.Context, id string) (*models.Post, error) {
 	rows, err := repo.db.QueryContext(ctx, "SELECT id, post_content, user_id, created_at FROM posts WHERE id = $1", id)
 	if err != nil {

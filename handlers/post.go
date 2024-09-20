@@ -39,6 +39,26 @@ func GetPostByIDHandler(s server.Server) http.HandlerFunc {
 	}
 }
 
+func DeletePostHandler(s server.Server) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		claimsUserId, err := auth.ValidateToken(s, r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		err = repository.DeletePost(r.Context(), params["id"], claimsUserId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(PostDeletedResponse{
+			Message: "Post deleted",
+		})
+	}
+}
+
 func UpdatePostByIdHandler(s server.Server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
