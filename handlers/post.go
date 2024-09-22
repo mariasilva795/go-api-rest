@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/mariasilva795/go-api-rest/events"
 	"github.com/mariasilva795/go-api-rest/helpers/auth"
 	"github.com/mariasilva795/go-api-rest/models"
 	"github.com/mariasilva795/go-api-rest/repository"
@@ -128,6 +129,12 @@ func InsertPostHandler(s server.Server) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		var postMessage = models.WebsockertMessage{
+			Type:    events.POST_CREATED,
+			Payload: post,
+		}
+		s.Hub().Broadcast(postMessage, nil)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(PostResponse{
