@@ -18,7 +18,7 @@ This project is a basic implementation of a **REST API** in Go using the **Repos
 - Modular and scalable project structure.
 
 ## Requirements
-- Go 1.18+
+- Go 1.23.0+
 - Gorilla WebSocket (`github.com/gorilla/websocket`)
 - Mux router (`github.com/gorilla/mux`)
 -Others
@@ -26,16 +26,14 @@ This project is a basic implementation of a **REST API** in Go using the **Repos
 
 ```
 .
-├── cmd
-│   └── main.go            # Entry point for the application
-├── controllers
-│   └── user_controller.go  # Controller for handling HTTP requests
+├── databases
+│   └── postgress.go        # Query and conection with DB
+├── handlers
+│   └── user.go             # Controller for handling HTTP requests
 ├── models
 │   └── user.go             # User model definition
 ├── repository
-│   └── user_repository.go  # Repository pattern implementation
-├── services
-│   └── user_service.go     # Business logic services
+│   └── repository.go       # Repository pattern implementation
 ├── websocket
 │   └── websocket.go        # WebSocket implementation
 ├── go.mod                  # Go module file
@@ -48,7 +46,7 @@ This project is a basic implementation of a **REST API** in Go using the **Repos
 ### Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
+git clone https://github.com/mariasilva795/go-api-rest.git
 cd your-repository
 ```
 
@@ -65,7 +63,7 @@ go mod tidy
    To run the Go application, use:
 
    ```bash
-   go run cmd/main.go
+   go run main.go
    ```
 
 2. **Testing the REST API**:
@@ -75,18 +73,6 @@ go mod tidy
 3. **Testing the WebSocket**:
 
    You can test the WebSocket functionality using a WebSocket client or browser developer tools.
-
-## API Endpoints
-
-### User Resource
-
-| Method | Endpoint           | Description          |
-|--------|--------------------|----------------------|
-| GET    | `/api/users`        | Get all users        |
-| GET    | `/api/users/{id}`   | Get user by ID       |
-| POST   | `/api/users`        | Create new user      |
-| PUT    | `/api/users/{id}`   | Update user by ID    |
-| DELETE | `/api/users/{id}`   | Delete user by ID    |
 
 ## WebSocket
 
